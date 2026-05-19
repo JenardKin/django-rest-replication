@@ -11,7 +11,7 @@ For Phase 0 these are stubs — the base class doesn't exist yet.
 
 from django.db import models
 
-# from django_replication.models.mixins import ReplicatedModel  # Phase 1
+# from django_rest_replication.models.mixins import ReplicatedModel  # Phase 1
 
 
 class Organization(models.Model):

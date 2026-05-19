@@ -59,17 +59,17 @@ pip install django-rest-replication
 # 2. Add to INSTALLED_APPS
 INSTALLED_APPS = [
     ...
-    "django_replication",
+    "django_rest_replication",
 ]
 
 # 3. Configure
 DJANGO_REPLICATION = {
     "NODE_ID": "your-node-uuid",
-    "BACKEND": "django_replication.backend.ReplicationBackend",
+    "BACKEND": "django_rest_replication.backend.ReplicationBackend",
 }
 
 # 4. Add the mixin to models you want to replicate
-from django_replication.models.mixins import ReplicatedModel
+from django_rest_replication.models.mixins import ReplicatedModel
 
 class Product(ReplicatedModel):
     name = models.CharField(max_length=255)

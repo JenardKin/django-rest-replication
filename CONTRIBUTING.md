@@ -21,13 +21,13 @@ uv run pytest
 # 5. Run linting and type checks
 uv run ruff check src/ tests/
 uv run ruff format src/ tests/
-uv run mypy src/django_replication/
+uv run mypy src/django_rest_replication/
 ```
 
 ## Project Structure
 
 ```
-src/django_replication/   # Package source
+src/django_rest_replication/   # Package source
 tests/                    # Test suite
 tests/testapp/            # Minimal Django app used by tests
 .github/workflows/        # CI configuration

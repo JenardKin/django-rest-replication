@@ -5,8 +5,8 @@ Usage in host app's settings.py:
 
     DJANGO_REPLICATION = {
         "NODE_ID": "your-node-uuid-here",
-        "BACKEND": "django_replication.backend.ReplicationBackend",
-        "TASK_BACKEND": "django_replication.tasks.sync.SynchronousTaskBackend",
+        "BACKEND": "django_rest_replication.backend.ReplicationBackend",
+        "TASK_BACKEND": "django_rest_replication.tasks.sync.SynchronousTaskBackend",
         "TENANT_MODEL": None,          # e.g. "myapp.Organization"
         "TENANT_FIELD": "tenant_id",
         "BATCH_SIZE": 500,
@@ -30,8 +30,8 @@ _UNSET: Any = object()
 
 DEFAULTS: dict[str, Any] = {
     "NODE_ID": None,
-    "BACKEND": "django_replication.backend.ReplicationBackend",
-    "TASK_BACKEND": "django_replication.tasks.sync.SynchronousTaskBackend",
+    "BACKEND": "django_rest_replication.backend.ReplicationBackend",
+    "TASK_BACKEND": "django_rest_replication.tasks.sync.SynchronousTaskBackend",
     "TENANT_MODEL": None,
     "TENANT_FIELD": "tenant_id",
     "BATCH_SIZE": 500,

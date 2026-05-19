@@ -69,7 +69,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/django_replication"]
+packages = ["src/django_rest_replication"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/", "tests/", "CHANGELOG.md", "README.md", "LICENSE"]
@@ -101,7 +101,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["django_replication"]
+known-first-party = ["django_rest_replication"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -145,7 +145,7 @@ markers = [
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["src/django_replication"]
+source = ["src/django_rest_replication"]
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.coverage.report]

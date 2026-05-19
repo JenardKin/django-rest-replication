@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "rest_framework",
-    "django_replication",
+    "django_rest_replication",
     "tests.testapp",
 ]
 
@@ -41,8 +41,8 @@ USE_TZ = True
 # ---------------------------------------------------------------------------
 DJANGO_REPLICATION = {
     "NODE_ID": "00000000-0000-0000-0000-000000000001",  # hub
-    "BACKEND": "django_replication.backend.ReplicationBackend",
-    "TASK_BACKEND": "django_replication.tasks.sync.SynchronousTaskBackend",
+    "BACKEND": "django_rest_replication.backend.ReplicationBackend",
+    "TASK_BACKEND": "django_rest_replication.tasks.sync.SynchronousTaskBackend",
     "TENANT_MODEL": None,
     "TENANT_FIELD": "tenant_id",
     "BATCH_SIZE": 500,
@@ -57,7 +57,7 @@ DJANGO_REPLICATION = {
 # ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "django_replication.api.auth.NodeTokenAuthentication",
+        "django_rest_replication.api.auth.NodeTokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
