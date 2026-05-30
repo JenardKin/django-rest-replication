@@ -4,7 +4,7 @@ Change capture signal handlers.
 These are the only entry points for recording model changes. Each handler
 is intentionally thin — guard checks, then delegate to the capture pipeline.
 
-Registered in DjangoReplicationConfig.ready() to avoid AppRegistryNotReady.
+Registered in DjangoRESTReplicationConfig.ready() to avoid AppRegistryNotReady.
 """
 
 # Handlers are implemented in Phase 3.

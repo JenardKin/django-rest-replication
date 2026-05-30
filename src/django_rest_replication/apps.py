@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class DjangoReplicationConfig(AppConfig):
+class DjangoRESTReplicationConfig(AppConfig):
     name = "django_rest_replication"
     verbose_name = "Django Replication"
     default_auto_field = "django.db.models.UUIDField"
