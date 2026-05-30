@@ -361,6 +361,36 @@ class BaseTaskBackend:
 
 ---
 
+## Database Targets
+
+| Database | Status | Notes |
+|----------|--------|-------|
+| PostgreSQL 14+ | Primary | CI-tested on every PR; JSONB native; UUID native |
+| MSSQL (SQL Server 2019+) | Supported | Via `mssql-django`; JSON stored as `nvarchar(max)`; not CI-tested |
+| SQLite | Dev fallback only | Used locally when `DATABASE_URL` is not set; not a production target |
+| MySQL / MariaDB | Untested | `JSONField` supported in Django; no known blockers but not validated |
+
+**To run tests against PostgreSQL locally:**
+```bash
+DATABASE_URL=postgres://user:pass@localhost:5432/test_db uv run pytest
+```
+
+**To run against MSSQL:**
+```bash
+pip install "django-rest-replication[mssql]"
+DATABASE_URL="mssql://user:pass@localhost:1433/test_db?driver=ODBC+Driver+18+for+SQL+Server" uv run pytest
+```
+
+### Database compatibility notes
+
+- **UUID v7 PKs** — stored as native `uuid` in PostgreSQL, `uniqueidentifier` in MSSQL, `char(32)` in MySQL. All handled transparently by Django's `UUIDField`.
+- **`JSONField`** — `jsonb` (PostgreSQL), `nvarchar(max)` (MSSQL), `json` (MySQL 5.7+). No JSON-operator queries are used in the library code to stay cross-database.
+- **`SyncCursor.tenant_id`** uses `""` (empty string) as the single-tenant sentinel instead of `NULL` — `unique_together` with `NULL` values is not enforced consistently across databases.
+- **Index name lengths** — all index names are ≤ 21 characters, well within PostgreSQL's 63-char and MSSQL's 128-char limits.
+- **No database-specific SQL** — all queries go through the Django ORM. Raw SQL is explicitly prohibited in this library.
+
+---
+
 ## Key Design Decisions
 
 | Decision | Choice | Reason |
@@ -372,6 +402,7 @@ class BaseTaskBackend:
 | Loop prevention | Thread-local flag | Prevents signal re-fire during apply without DB round-trip |
 | Conflict default | Last-write-wins | Safe default; users override via `Backend.resolve_conflict()` |
 | Task delivery | Pluggable | Same code works in simple deploys (sync) and scaled deploys (Celery) |
+| No raw SQL | ORM only | Keeps the library portable across all Django-supported databases |
 
 ---
 

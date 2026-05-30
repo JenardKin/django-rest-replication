@@ -1,6 +1,21 @@
 """
 Minimal Django settings for running the test suite.
 
+Database selection
+------------------
+Set the DATABASE_URL environment variable to point at a real database:
+
+    # PostgreSQL (primary target)
+    DATABASE_URL=postgres://user:pass@localhost:5432/test_db
+
+    # MSSQL (requires mssql-django installed)
+    DATABASE_URL=mssql://user:pass@localhost:1433/test_db?driver=ODBC+Driver+18+for+SQL+Server
+
+When DATABASE_URL is not set the suite falls back to SQLite :memory:, which is
+suitable only for local dev without a running database server.
+
+Node simulation
+---------------
 Two logical "sites" are represented via DJANGO_REPLICATION settings:
   - hub:   the central aggregating node
   - spoke: an on-premise / edge node
@@ -11,15 +26,17 @@ to simulate each side of the connection.
 
 from __future__ import annotations
 
+import dj_database_url
+
 SECRET_KEY = "django-replication-test-secret-not-for-production"
 
 DEBUG = True
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-    }
+    "default": dj_database_url.config(
+        default="sqlite://:memory:",
+        conn_max_age=0,  # no persistent connections in tests
+    )
 }
 
 INSTALLED_APPS = [

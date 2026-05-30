@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   test:
-    name: Python ${{ matrix.python-version }} / Django ${{ matrix.django-version }}
+    name: Py ${{ matrix.python-version }} / Django ${{ matrix.django-version }} / ${{ matrix.db }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -20,6 +20,29 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13"]
         django-version: ["5.2"]
+        db: [postgresql, sqlite]
+        include:
+          - db: postgresql
+            database-url: "postgres://postgres:postgres@localhost:5432/test_db"
+          - db: sqlite
+            database-url: ""
+
+    # PostgreSQL service is always started; only the postgresql matrix entries
+    # connect to it via DATABASE_URL.  The overhead on sqlite runs is minimal.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -40,11 +63,13 @@ jobs:
           uv pip install "django==${{ matrix.django-version }}.*"
 
       - name: Run tests
+        env:
+          DATABASE_URL: ${{ matrix.database-url }}
         run: uv run pytest --cov --cov-report=xml -q
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
-        if: matrix.python-version == '3.12' && matrix.django-version == '5.2'
+        if: matrix.python-version == '3.12' && matrix.django-version == '5.2' && matrix.db == 'postgresql'
         with:
           files: ./coverage.xml
           fail_ci_if_error: false

@@ -47,6 +47,7 @@ celery = ["celery>=5.4"]
 django-q = ["django-q2>=1.7"]
 filter = ["django-filter>=24.0"]
 schema = ["drf-spectacular>=0.28"]
+mssql = ["mssql-django>=1.4"]
 
 [project.urls]
 Homepage = "https://github.com/JenardKin/django-rest-replication"
@@ -66,6 +67,8 @@ dev = [
     "django-stubs[compatible-mypy]>=5.1",
     "djangorestframework-stubs>=3.15",
     "drf-spectacular>=0.28",
+    "dj-database-url>=2.3",
+    "psycopg[binary]>=3.2",
 ]
 
 [tool.hatch.build.targets.wheel]
