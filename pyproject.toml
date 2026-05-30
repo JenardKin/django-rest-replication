@@ -96,8 +96,10 @@ select = [
     "RUF", # ruff-specific
 ]
 ignore = [
-    "E501",  # line length — handled by formatter
-    "B008",  # do not perform function calls in default args (DRF does this)
+    "E501",   # line length — handled by formatter
+    "B008",   # do not perform function calls in default args (DRF does this)
+    "RUF012", # mutable class attributes — false-positive on Django Meta and migration classes
+    "DJ001",  # null=True on CharField — intentional for tenant_id (NULL ≠ empty string semantically)
 ]
 
 [tool.ruff.lint.isort]

@@ -8,11 +8,11 @@ skipped on failure.
 
 from __future__ import annotations
 
-import uuid_utils
 from django.db import models
 
 from django_rest_replication.models.change_event import ChangeEvent
 from django_rest_replication.models.node_connection import NodeConnection
+from django_rest_replication.utils import uuid7
 
 
 class SyncCursor(models.Model):
@@ -26,7 +26,7 @@ class SyncCursor(models.Model):
 
     id = models.UUIDField(
         primary_key=True,
-        default=uuid_utils.uuid7,
+        default=uuid7,
         editable=False,
     )
     node = models.ForeignKey(
@@ -36,9 +36,9 @@ class SyncCursor(models.Model):
     )
     tenant_id = models.CharField(
         max_length=255,
-        null=True,
         blank=True,
-        help_text="Tenant this cursor tracks. Null for single-tenant setups.",
+        default="",
+        help_text='Tenant this cursor tracks. Empty string for single-tenant setups.',
     )
     last_event = models.ForeignKey(
         ChangeEvent,
@@ -55,6 +55,6 @@ class SyncCursor(models.Model):
         unique_together = [("node", "tenant_id")]
 
     def __str__(self) -> str:
-        tenant = self.tenant_id or "—"
+        tenant = self.tenant_id if self.tenant_id else "—"
         cursor = str(self.last_event_id) if self.last_event_id else "start"
         return f"{self.node.name} / tenant={tenant} @ {cursor}"

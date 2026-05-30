@@ -1,8 +1,9 @@
 """Initial migration — Phase 1 core models."""
 
 import django.db.models.deletion
-import uuid_utils
 from django.db import migrations, models
+
+import django_rest_replication.utils
 
 
 class Migration(migrations.Migration):
@@ -19,7 +20,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.UUIDField(
-                        default=uuid_utils.uuid7,
+                        default=django_rest_replication.utils.uuid7,
                         editable=False,
                         primary_key=True,
                         serialize=False,
@@ -55,7 +56,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.UUIDField(
-                        default=uuid_utils.uuid7,
+                        default=django_rest_replication.utils.uuid7,
                         editable=False,
                         primary_key=True,
                         serialize=False,
@@ -132,7 +133,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.UUIDField(
-                        default=uuid_utils.uuid7,
+                        default=django_rest_replication.utils.uuid7,
                         editable=False,
                         primary_key=True,
                         serialize=False,
@@ -190,7 +191,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.UUIDField(
-                        default=uuid_utils.uuid7,
+                        default=django_rest_replication.utils.uuid7,
                         editable=False,
                         primary_key=True,
                         serialize=False,
@@ -250,7 +251,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.UUIDField(
-                        default=uuid_utils.uuid7,
+                        default=django_rest_replication.utils.uuid7,
                         editable=False,
                         primary_key=True,
                         serialize=False,
@@ -268,9 +269,9 @@ class Migration(migrations.Migration):
                     "tenant_id",
                     models.CharField(
                         blank=True,
-                        help_text="Tenant this cursor tracks. Null for single-tenant setups.",
+                        default="",
+                        help_text="Tenant this cursor tracks. Empty string for single-tenant setups.",
                         max_length=255,
-                        null=True,
                     ),
                 ),
                 (

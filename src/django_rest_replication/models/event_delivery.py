@@ -7,11 +7,11 @@ transport layer as delivery succeeds, fails, or is retried.
 
 from __future__ import annotations
 
-import uuid_utils
 from django.db import models
 
 from django_rest_replication.models.change_event import ChangeEvent
 from django_rest_replication.models.node_connection import NodeConnection
+from django_rest_replication.utils import uuid7
 
 
 class DeliveryStatus(models.TextChoices):
@@ -32,7 +32,7 @@ class EventDelivery(models.Model):
 
     id = models.UUIDField(
         primary_key=True,
-        default=uuid_utils.uuid7,
+        default=uuid7,
         editable=False,
     )
     event = models.ForeignKey(

@@ -28,7 +28,6 @@ from django_rest_replication.models import (
     SyncCursor,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -70,21 +69,21 @@ class TestReplicatedModel:
 
     def test_product_has_uuid_pk(self) -> None:
         """Product inherits the UUID v7 primary key from ReplicatedModel."""
-        from tests.testapp.models import Product, Organization
+        from tests.testapp.models import Organization, Product
 
         org = Organization.objects.create(name="ACME")
         product = Product.objects.create(name="Widget", price="9.99", organization=org)
         assert isinstance(product.pk, uuid.UUID)
 
     def test_should_replicate_default_true(self) -> None:
-        from tests.testapp.models import Product, Organization
+        from tests.testapp.models import Organization, Product
 
         org = Organization.objects.create(name="ACME")
         product = Product.objects.create(name="Widget", price="9.99", organization=org)
         assert product.should_replicate() is True
 
     def test_get_tenant_id_default_none(self) -> None:
-        from tests.testapp.models import Product, Organization
+        from tests.testapp.models import Organization, Product
 
         org = Organization.objects.create(name="ACME")
         product = Product.objects.create(name="Widget", price="9.99", organization=org)
@@ -322,18 +321,18 @@ class TestSyncCursor:
         cursor = SyncCursor.objects.create(node=node)
         assert cursor.last_event is None
 
-    def test_tenant_id_default_null(self) -> None:
+    def test_tenant_id_default_empty_string(self) -> None:
         node = make_node()
         cursor = SyncCursor.objects.create(node=node)
-        assert cursor.tenant_id is None
+        assert cursor.tenant_id == ""
 
     def test_unique_together_node_tenant(self) -> None:
         from django.db import IntegrityError
 
         node = make_node()
-        SyncCursor.objects.create(node=node, tenant_id=None)
+        SyncCursor.objects.create(node=node, tenant_id="")
         with pytest.raises(IntegrityError):
-            SyncCursor.objects.create(node=node, tenant_id=None)
+            SyncCursor.objects.create(node=node, tenant_id="")
 
     def test_multiple_tenants_same_node(self) -> None:
         node = make_node()

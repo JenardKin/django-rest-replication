@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     "tests.testapp",
 ]
 
-DEFAULT_AUTO_FIELD = "django.db.models.UUIDField"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 ROOT_URLCONF = "tests.testapp.urls"
 

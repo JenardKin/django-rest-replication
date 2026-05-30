@@ -11,13 +11,9 @@ Usage:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import uuid_utils
 from django.db import models
 
-if TYPE_CHECKING:
-    pass
+from django_rest_replication.utils import uuid7
 
 
 class ReplicatedModel(models.Model):
@@ -32,7 +28,7 @@ class ReplicatedModel(models.Model):
 
     id = models.UUIDField(
         primary_key=True,
-        default=uuid_utils.uuid7,
+        default=uuid7,
         editable=False,
     )
 
