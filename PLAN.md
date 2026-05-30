@@ -45,7 +45,8 @@ No message brokers, no direct DB access, no cloud lock-in.
 | 7 | Event Application | 🔲 Planned | apply incoming events |
 | 8 | Integration Tests | 🔲 Planned | topology scenarios |
 | 9 | DX & Admin | 🔲 Planned | management commands, Django admin |
-| 10 | Docs & PyPI | 🔲 Planned | README polish, publish |
+| 10 | Docs & PyPI | 🔲 Planned | README polish, publish 0.1.0 |
+| 11 | NoSQL Support | 🔲 Future | MongoDB, Elasticsearch, Redis targets |
 
 ---
 
@@ -361,33 +362,83 @@ class BaseTaskBackend:
 
 ---
 
+## Phase 11 — NoSQL Support 🔲
+
+**Goal:** allow replicated events to be applied to NoSQL stores, making the
+library useful for teams whose read models or search indices live outside SQL.
+
+**Scope:** the replication system's own tables (`ChangeEvent`, `NodeConnection`,
+etc.) stay on SQL. NoSQL applies to the *application* layer — where the
+`ReplicationBackend.on_before_apply` / `on_after_apply` hooks fire.
+
+**Approach options (to be decided at phase start):**
+
+| Option | Description | Tradeoff |
+|--------|-------------|----------|
+| Backend-only | Users write a custom `Backend` subclass that writes to MongoDB/ES | Zero lib complexity; full flexibility |
+| Built-in adapters | Ship `MongoBackend`, `ElasticsearchBackend` as optional extras | More surface area; easier for users |
+| Hybrid | Provide base classes + helper utilities; users compose | Middle ground |
+
+**Candidate targets:**
+
+| Store | Package | Use case |
+|-------|---------|---------|
+| MongoDB | `motor` (async) / `pymongo` | Document store for replicated models |
+| Elasticsearch | `elasticsearch-py` | Search index kept in sync via replication |
+| Redis | `redis-py` | Cache invalidation / pub-sub on replication events |
+| DynamoDB | `boto3` | AWS NoSQL target |
+
+**Deliverables:**
+- [ ] Decision: backend-only, built-in adapters, or hybrid
+- [ ] At least one reference adapter (likely MongoDB) with integration tests
+- [ ] Optional extras in `pyproject.toml` per NoSQL target
+- [ ] CI job for at least one NoSQL target
+- [ ] Documentation: "Writing a NoSQL backend adapter"
+
+---
+
 ## Database Targets
 
-| Database | Status | Notes |
-|----------|--------|-------|
-| PostgreSQL 14+ | Primary | CI-tested on every PR; JSONB native; UUID native |
-| MSSQL (SQL Server 2019+) | Supported | Via `mssql-django`; JSON stored as `nvarchar(max)`; not CI-tested |
-| SQLite | Dev fallback only | Used locally when `DATABASE_URL` is not set; not a production target |
-| MySQL / MariaDB | Untested | `JSONField` supported in Django; no known blockers but not validated |
+### SQL databases (Phases 0–10)
 
-**To run tests against PostgreSQL locally:**
+The replication system's own tables (`ChangeEvent`, `NodeConnection`, etc.) require
+ACID transactions and relational integrity — SQL is the right tool here.
+
+| Database | Tier | Driver | CI |
+|----------|------|--------|----|
+| PostgreSQL 14+ | **Primary** | built-in `psycopg` | ✅ Every PR |
+| MSSQL / SQL Server 2019+ | **Secondary** | `mssql-django` | 🔲 Planned |
+| MySQL 8.0+ / MariaDB 10.5+ | **Supported** | built-in `mysqlclient` | 🔲 Planned |
+| Oracle 19c+ | **Supported** | built-in `cx_Oracle` | 🔲 Planned |
+| CockroachDB | **Supported** | `django-cockroachdb` | 🔲 Planned |
+| SQLite | **Dev fallback only** | built-in | ✅ Every PR (no `DATABASE_URL`) |
+
+**To run tests locally:**
 ```bash
+# PostgreSQL (primary)
 DATABASE_URL=postgres://user:pass@localhost:5432/test_db uv run pytest
-```
 
-**To run against MSSQL:**
-```bash
+# MSSQL (requires mssql-django)
 pip install "django-rest-replication[mssql]"
 DATABASE_URL="mssql://user:pass@localhost:1433/test_db?driver=ODBC+Driver+18+for+SQL+Server" uv run pytest
+
+# MySQL
+DATABASE_URL=mysql://user:pass@localhost:3306/test_db uv run pytest
 ```
+
+### NoSQL databases (Phase 11)
+
+NoSQL support is a future phase. See [Phase 11](#phase-11--nosql-support-) below.
+The replication system's own tables will always remain on a SQL backend;
+NoSQL applies only to the *application* layer where replicated data is written.
 
 ### Database compatibility notes
 
-- **UUID v7 PKs** — stored as native `uuid` in PostgreSQL, `uniqueidentifier` in MSSQL, `char(32)` in MySQL. All handled transparently by Django's `UUIDField`.
-- **`JSONField`** — `jsonb` (PostgreSQL), `nvarchar(max)` (MSSQL), `json` (MySQL 5.7+). No JSON-operator queries are used in the library code to stay cross-database.
-- **`SyncCursor.tenant_id`** uses `""` (empty string) as the single-tenant sentinel instead of `NULL` — `unique_together` with `NULL` values is not enforced consistently across databases.
-- **Index name lengths** — all index names are ≤ 21 characters, well within PostgreSQL's 63-char and MSSQL's 128-char limits.
-- **No database-specific SQL** — all queries go through the Django ORM. Raw SQL is explicitly prohibited in this library.
+- **UUID v7 PKs** — `uuid` (PostgreSQL), `uniqueidentifier` (MSSQL), `char(32)` (MySQL/Oracle). All handled transparently by Django's `UUIDField`.
+- **`JSONField`** — `jsonb` (PostgreSQL), `nvarchar(max)` (MSSQL), `json` (MySQL 5.7+). No JSON-operator queries (`->`, `->>`) are used — plain reads/writes only, keeping code cross-database.
+- **`SyncCursor.tenant_id`** uses `""` as the single-tenant sentinel instead of `NULL` — `unique_together` with `NULL` is not enforced consistently across SQL dialects.
+- **Index name lengths** — all names ≤ 21 chars (PostgreSQL limit: 63, MSSQL limit: 128, Oracle limit: 128).
+- **No raw SQL** — all queries go through the Django ORM. Raw SQL is explicitly prohibited in this library.
 
 ---
 
@@ -425,11 +476,10 @@ DJANGO_REPLICATION = {
 
 ---
 
-## Immediate Next Steps (Phase 1)
+## Immediate Next Steps (Phase 2)
 
-1. Create `src/django_rest_replication/models/` package with one file per model
-2. Add `ReplicatedModel` abstract mixin
-3. Write and run the initial migration
-4. Wire `ReplicatedModel` into `testapp` models (uncomment the import)
-5. Write unit tests for model constraints and mixin defaults
-6. Update `CHANGELOG.md` with Phase 1 entries
+1. Create `src/django_rest_replication/backend/base.py` — `BaseReplicationBackend` ABC
+2. Create `src/django_rest_replication/backend/default.py` — `ReplicationBackend` (no-op + last-write-wins)
+3. Validate `app_settings.BACKEND` lazy-imports and type-checks the class
+4. Write unit tests with a custom backend subclass
+5. Update `CHANGELOG.md` with Phase 2 entries

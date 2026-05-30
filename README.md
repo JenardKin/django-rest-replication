@@ -127,6 +127,7 @@ for the implementation roadmap.
 | 8 | Integration & topology tests | 🔲 Planned |
 | 9 | Developer experience & admin | 🔲 Planned |
 | 10 | Docs & PyPI publish | 🔲 Planned |
+| 11 | NoSQL support (MongoDB, Elasticsearch, Redis) | 🔲 Future |
 
 ---
 
