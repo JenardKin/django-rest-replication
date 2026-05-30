@@ -117,8 +117,8 @@ for the implementation roadmap.
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Scaffold — tooling, CI, testapp | ✅ Done |
-| 1 | Core models | 🔲 Planned |
-| 2 | Backend adapter | 🔲 Planned |
+| 1 | Core models | ✅ Done |
+| 2 | Backend adapter | 🔲 Next |
 | 3 | Change capture | 🔲 Planned |
 | 4 | Task backends (sync/async) | 🔲 Planned |
 | 5 | REST API | 🔲 Planned |

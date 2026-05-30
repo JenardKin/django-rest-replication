@@ -36,8 +36,8 @@ No message brokers, no direct DB access, no cloud lock-in.
 | # | Phase | Status | Notes |
 |---|-------|--------|-------|
 | 0 | Scaffold | ✅ Done | tooling, CI, AppConfig, AppSettings, testapp |
-| 1 | Core Models | 🔲 Next | DB schema for the replication system |
-| 2 | Backend Adapter | 🔲 Planned | user hook interface |
+| 1 | Core Models | ✅ Done | DB schema for the replication system |
+| 2 | Backend Adapter | 🔲 Next | user hook interface |
 | 3 | Change Capture | 🔲 Planned | signal handlers → ChangeEvent |
 | 4 | Task Backends | 🔲 Planned | sync + Celery + django-q |
 | 5 | REST API | 🔲 Planned | push/pull endpoints |
@@ -142,10 +142,10 @@ updated_at  DateTimeField (auto)
 ```
 
 **Deliverables:**
-- [ ] `src/django_rest_replication/models/` — one file per model + `__init__.py` re-export
-- [ ] Initial migration
-- [ ] `ReplicatedModel` mixin wired into `testapp` models
-- [ ] Unit tests for model field constraints and `ReplicatedModel` defaults
+- [x] `src/django_rest_replication/models/` — one file per model + `__init__.py` re-export
+- [x] Initial migration (`0001_initial`)
+- [x] `ReplicatedModel` mixin wired into `testapp` models
+- [x] Unit tests for model field constraints and `ReplicatedModel` defaults
 
 ---
 

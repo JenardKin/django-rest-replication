@@ -2,16 +2,14 @@
 Sample models for the test suite.
 
 These demonstrate the intended usage of django-rest-replication:
-  1. Inherit from ReplicatedModel (added in Phase 1)
+  1. Inherit from ReplicatedModel to opt a model into replication
   2. Optionally override should_replicate() for conditional exclusions
   3. Optionally override get_tenant_id() for multi-tenant setups
-
-For Phase 0 these are stubs — the base class doesn't exist yet.
 """
 
 from django.db import models
 
-# from django_rest_replication.models.mixins import ReplicatedModel  # Phase 1
+from django_rest_replication.models.mixins import ReplicatedModel
 
 
 class Organization(models.Model):
@@ -26,15 +24,9 @@ class Organization(models.Model):
         return self.name
 
 
-class Product(models.Model):
-    """
-    Simple replicated model.
+class Product(ReplicatedModel):
+    """Simple replicated model — demonstrates ReplicatedModel in use."""
 
-    In Phase 1 this will inherit from ReplicatedModel.
-    For now it's a plain Django model so the test suite can run.
-    """
-
-    # id: UUIDField primary key via DEFAULT_AUTO_FIELD
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     organization = models.ForeignKey(
