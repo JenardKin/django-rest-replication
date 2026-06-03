@@ -37,14 +37,14 @@ No message brokers, no direct DB access, no cloud lock-in.
 |---|-------|--------|-------|
 | 0 | Scaffold | ✅ Done | tooling, CI, AppConfig, AppSettings, testapp |
 | 1 | Core Models | ✅ Done | DB schema for the replication system |
-| 2 | Backend Adapter | 🔲 Next | user hook interface |
-| 3 | Change Capture | 🔲 Planned | signal handlers → ChangeEvent |
-| 4 | Task Backends | 🔲 Planned | sync + Celery + django-q |
-| 5 | REST API | 🔲 Planned | push/pull endpoints |
-| 6 | Sync Engine | 🔲 Planned | cursor-based pull loop |
-| 7 | Event Application | 🔲 Planned | apply incoming events |
-| 8 | Integration Tests | 🔲 Planned | topology scenarios |
-| 9 | DX & Admin | 🔲 Planned | management commands, Django admin |
+| 2 | Backend Adapter | ✅ Done | user hook interface |
+| 3 | Change Capture | ✅ Done | signal handlers → ChangeEvent |
+| 4 | Task Backends | ✅ Done | sync + Celery + django-q |
+| 5 | REST API | ✅ Done | push/pull/snapshot endpoints |
+| 6 | Sync Engine | ✅ Done | cursor-based pull loop + bootstrap |
+| 7 | Event Application | ✅ Done | apply incoming events |
+| 8 | Integration Tests | ✅ Done | topology scenarios |
+| 9 | DX & Admin | ✅ Done | management commands, Django admin |
 | 10 | Docs & PyPI | 🔲 Planned | README polish, publish 0.1.0 |
 | 11 | NoSQL Support | 🔲 Future | MongoDB, Elasticsearch, Redis targets |
 
