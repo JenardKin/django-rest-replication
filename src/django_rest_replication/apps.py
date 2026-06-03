@@ -9,4 +9,6 @@ class DjangoRESTReplicationConfig(AppConfig):
     def ready(self) -> None:
         # Signals are registered here — never at module level — to avoid
         # AppRegistryNotReady errors and to respect Django's app loading order.
-        from django_rest_replication.capture import signals  # noqa: F401  # registers handlers
+        from django_rest_replication.capture.signals import connect_signals
+
+        connect_signals()
