@@ -319,7 +319,7 @@ class TestSyncCursor:
     def test_last_event_default_null(self) -> None:
         node = make_node()
         cursor = SyncCursor.objects.create(node=node)
-        assert cursor.last_event is None
+        assert cursor.last_event_id is None
 
     def test_tenant_id_default_empty_string(self) -> None:
         node = make_node()
@@ -344,7 +344,7 @@ class TestSyncCursor:
         node = make_node()
         event = make_event()
         cursor = SyncCursor.objects.create(node=node)
-        cursor.last_event = event
+        cursor.last_event_id = event.pk
         cursor.save()
         cursor.refresh_from_db()
         assert cursor.last_event_id == event.pk
@@ -358,5 +358,21 @@ class TestSyncCursor:
     def test_str_with_event(self) -> None:
         node = make_node(name="Spoke C")
         event = make_event()
-        cursor = SyncCursor.objects.create(node=node, last_event=event)
+        cursor = SyncCursor.objects.create(node=node, last_event_id=event.pk)
         assert str(event.pk) in str(cursor)
+
+    def test_snapshot_completed_at_default_null(self) -> None:
+        node = make_node()
+        cursor = SyncCursor.objects.create(node=node)
+        assert cursor.snapshot_completed_at is None
+
+    def test_snapshot_completed_at_can_be_set(self) -> None:
+        from django.utils import timezone
+
+        node = make_node()
+        cursor = SyncCursor.objects.create(node=node)
+        now = timezone.now()
+        cursor.snapshot_completed_at = now
+        cursor.save()
+        cursor.refresh_from_db()
+        assert cursor.snapshot_completed_at is not None

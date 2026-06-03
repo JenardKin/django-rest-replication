@@ -135,11 +135,12 @@ delivered_at DateTimeField | null
 ### `SyncCursor`
 Per-node (per-tenant) cursor for pull-based sync.
 ```
-id          UUID (PK)
-node        FK → NodeConnection
-tenant_id   str | null
-last_event  FK → ChangeEvent | null — last successfully applied event
-updated_at  DateTimeField (auto)
+id                    UUID (PK)
+node                  FK → NodeConnection
+tenant_id             str | null
+last_event_id         UUID | null — UUID v7 of last applied event (plain field, not FK)
+snapshot_completed_at DateTimeField | null — null = snapshot never run; set = streaming mode
+updated_at            DateTimeField (auto)
 ```
 
 **Deliverables:**
@@ -235,17 +236,48 @@ class BaseTaskBackend:
 | `GET`  | `/replication/events/?after=<uuid>&limit=<n>` | Pull events since cursor |
 | `GET`  | `/replication/nodes/` | List known peers (admin use) |
 | `POST` | `/replication/ack/` | Acknowledge delivered events |
+| `GET`  | `/replication/snapshot/manifest/` | Topologically ordered model list + watermark |
+| `GET`  | `/replication/snapshot/?model=<label>&after=<uuid>&limit=<n>` | Paginated row export for bootstrap |
 
 **Auth:** shared token in `Authorization: Token <token>` header, validated against `NodeConnection.auth_token`.
 
+**Snapshot manifest response:**
+```json
+{
+  "watermark": "<current max ChangeEvent id — captured before any rows are read>",
+  "models": ["shop.Category", "shop.Product", "shop.ProductTag"]
+}
+```
+Models are ordered by Django FK dependency (parents before children) so the
+receiver can apply rows without FK constraint errors.  The `watermark` is
+captured server-side in a single query *before* any rows are read so that
+changes landing during the snapshot are guaranteed to appear in the subsequent
+event stream.
+
+**Snapshot page response:**
+```json
+{
+  "model": "shop.Product",
+  "next_cursor": "<last pk in this batch or null>",
+  "has_more": true,
+  "rows": [
+    {"id": "...", "name": "...", ...}
+  ]
+}
+```
+`rows` use the identical payload format as `ChangeEvent.payload` so the Phase 7
+applier handles snapshot rows and streamed events through the same code path.
+
 **Deliverables:**
 - [ ] `api/serializers.py` — `ChangeEventSerializer`, `EventDeliverySerializer`
-- [ ] `api/views.py` — `EventPushView`, `EventPullView`, `AckView`
+- [ ] `api/views.py` — `EventPushView`, `EventPullView`, `AckView`, `SnapshotManifestView`, `SnapshotView`
 - [ ] `api/urls.py`
 - [ ] `api/authentication.py` — node token auth
 - [ ] `api/permissions.py` — `IsAuthenticatedNode`
+- [ ] `api/snapshot.py` — model topological sort, keyset-paginated queryset builder
 - [ ] URL include instructions in README
 - [ ] Unit tests for each endpoint (happy path + auth failure + invalid payload)
+- [ ] Unit tests for topological sort with FK dependency cycles (should raise clearly)
 
 ---
 
@@ -253,12 +285,26 @@ class BaseTaskBackend:
 
 **Goal:** pull events from peers and push pending deliveries.
 
-**Pull loop** (`routing/puller.py`):
+**Pull loop** (`routing/puller.py`) — two-phase per cursor:
+
+*Phase A — Bootstrap snapshot (runs once per cursor when `snapshot_completed_at` is null):*
+1. `GET /replication/snapshot/manifest/` → receive ordered model list + `watermark`
+2. For each model in order, paginate `GET /replication/snapshot/?model=<label>&after=<cursor>&limit=BATCH_SIZE` until `has_more=false`
+3. Apply each page of rows as upserts via the Phase 7 applier (same code path as events)
+4. On completion, set `cursor.last_event_id = watermark` and `cursor.snapshot_completed_at = now()`
+5. If interrupted, resume from the last successful page — keyset pagination makes this safe
+
+*Phase B — Incremental streaming (runs on every pull when `snapshot_completed_at` is set):*
 1. Load active `NodeConnection` records with `direction IN [PULL, BOTH]`
 2. For each node, load `SyncCursor` (per tenant if multi-tenant)
-3. `GET /replication/events/?after=<cursor>&limit=BATCH_SIZE`
+3. `GET /replication/events/?after=<last_event_id>&limit=BATCH_SIZE`
 4. Pass events to Phase 7 application layer
-5. Advance cursor on success
+5. Advance `last_event_id` on success
+
+The watermark recorded at the start of the snapshot guarantees that any writes
+landing *during* the snapshot export appear in the event stream when Phase B
+begins.  Because the applier uses `update_or_create`, duplicate rows (snapshot
+row + subsequent event) are handled safely with no special-casing.
 
 **Push loop** (`routing/pusher.py`):
 1. Load `EventDelivery` records with `status=PENDING`
@@ -266,12 +312,13 @@ class BaseTaskBackend:
 3. Update delivery status; retry with backoff up to `MAX_RETRIES`
 
 **Deliverables:**
-- [ ] `routing/puller.py`
+- [ ] `routing/puller.py` — two-phase pull logic
 - [ ] `routing/pusher.py`
-- [ ] `routing/cursor.py` — cursor read/advance helpers
+- [ ] `routing/cursor.py` — cursor read/advance/snapshot helpers
 - [ ] Management command `replication_pull` (wraps puller)
 - [ ] Management command `replication_push` (wraps pusher)
 - [ ] Unit tests with `pytest-httpx` mocking the peer HTTP calls
+- [ ] Integration test: node with pre-existing data bootstraps correctly and then streams
 
 ---
 
@@ -454,6 +501,12 @@ NoSQL applies only to the *application* layer where replicated data is written.
 | Conflict default | Last-write-wins | Safe default; users override via `Backend.resolve_conflict()` |
 | Task delivery | Pluggable | Same code works in simple deploys (sync) and scaled deploys (Celery) |
 | No raw SQL | ORM only | Keeps the library portable across all Django-supported databases |
+| Bootstrap strategy | Watermark + keyset snapshot | Watermark captured before rows are read; changes during export land in event stream naturally; no locks required (same pattern as Debezium incremental snapshots) |
+| Snapshot pagination | Keyset (`after=<pk>`) not OFFSET | OFFSET degrades linearly on large tables; keyset is O(1) per page via PK index |
+| Snapshot payload format | Same JSON as `ChangeEvent.payload` | Snapshot rows flow through the identical Phase 7 applier — no separate code path |
+| Model export order | Topological sort via Django meta FK graph | Prevents FK constraint errors on the receiver; auto-derived, no user config needed |
+| `SyncCursor.last_event_id` | Plain `UUIDField`, not FK | No constraint overhead on advance; event log can be pruned without nulling cursors |
+| Snapshot state | `SyncCursor.snapshot_completed_at` | Null = snapshot required; set = streaming mode. Single field, no extra model |
 
 ---
 
