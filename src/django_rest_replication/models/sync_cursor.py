@@ -48,6 +48,11 @@ class SyncCursor(models.Model):
         related_name="+",
         help_text="Last successfully applied event from this node/tenant stream.",
     )
+    snapshot_completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the initial snapshot phase completed. Null = not yet bootstrapped.",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
