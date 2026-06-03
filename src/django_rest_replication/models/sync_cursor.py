@@ -43,7 +43,7 @@ class SyncCursor(models.Model):
         max_length=255,
         blank=True,
         default="",
-        help_text='Tenant this cursor tracks. Empty string for single-tenant setups.',
+        help_text="Tenant this cursor tracks. Empty string for single-tenant setups.",
     )
     last_event_id = models.UUIDField(
         null=True,
