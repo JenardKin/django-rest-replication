@@ -40,8 +40,10 @@ DATABASES = {
 }
 
 INSTALLED_APPS = [
+    "django.contrib.admin",
     "django.contrib.contenttypes",
     "django.contrib.auth",
+    "django.contrib.sessions",
     "rest_framework",
     "django_rest_replication",
     "tests.testapp",
