@@ -7,8 +7,7 @@ from typing import Any
 
 import pytest
 
-from django_rest_replication.models import Direction, NodeConnection
-from django_rest_replication.capture.signals import get_loop_prevention_flag
+from django_rest_replication.models import NodeConnection
 
 
 @pytest.mark.integration
@@ -25,10 +24,10 @@ def test_p2p_no_duplicate_events(
     - Local node receives a remote event (via pull)
     - The event application must NOT trigger new ChangeEvents on the same record
     """
-    from tests.testapp.models import Organization, Product
     from django_rest_replication.models import ChangeEvent
     from django_rest_replication.routing.cursor import get_or_create_cursor, mark_snapshot_complete
     from django_rest_replication.routing.puller import run_pull
+    from tests.testapp.models import Organization, Product
 
     org = Organization.objects.create(name="P2P Org")
     product_id = str(uuid.uuid4())

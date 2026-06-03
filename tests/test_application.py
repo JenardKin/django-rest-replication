@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -205,8 +204,8 @@ def test_skip_if_newer_local_wins_when_newer() -> None:
 
     from django.utils import timezone
 
-    from tests.testapp.models import Organization, Product
     from django_rest_replication.backend.default import ReplicationBackend
+    from tests.testapp.models import Organization, Product
 
     org = Organization.objects.create(name="ACME")
     product = Product.objects.create(name="Old", price="1.00", organization=org)
@@ -231,9 +230,7 @@ def test_skip_if_newer_local_wins_when_newer() -> None:
 @pytest.mark.django_db(transaction=True)
 def test_loop_prevention_during_apply() -> None:
     """Signals should not fire when the loop-prevention flag is set."""
-    from tests.testapp.models import Organization, Product
-
-    from django_rest_replication.capture.signals import get_loop_prevention_flag
+    from tests.testapp.models import Organization
 
     org = Organization.objects.create(name="ACME")
     product_id = str(uuid.uuid4())

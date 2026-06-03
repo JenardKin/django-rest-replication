@@ -7,8 +7,7 @@ from typing import Any
 
 import pytest
 
-from django_rest_replication.models import Direction, NodeConnection
-from django_rest_replication.models.sync_cursor import SyncCursor
+from django_rest_replication.models import NodeConnection
 
 
 @pytest.mark.integration
@@ -21,10 +20,10 @@ def test_hub_spoke_event_flows(
     """
     Spoke creates event → hub pulls it → verifies correct application.
     """
-    from tests.testapp.models import Organization, Product
-    from django_rest_replication.models import ChangeEvent, EventType
+    from django_rest_replication.models import ChangeEvent
     from django_rest_replication.routing.cursor import get_or_create_cursor, mark_snapshot_complete
     from django_rest_replication.routing.puller import run_pull
+    from tests.testapp.models import Organization, Product
 
     org = Organization.objects.create(name="Hub Org")
     product_id = str(uuid.uuid4())

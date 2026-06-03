@@ -236,8 +236,6 @@ def test_run_push_delivers_pending_events(httpx_mock: Any) -> None:
 def test_run_push_marks_failed_on_http_error(httpx_mock: Any) -> None:
     import httpx as _httpx
 
-    from django_rest_replication.conf import app_settings
-
     node = make_node(base_url="https://peer.example.com", direction=Direction.PUSH)
     event = make_event()
     delivery = EventDelivery.objects.create(event=event, node=node)

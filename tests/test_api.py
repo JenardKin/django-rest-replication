@@ -16,7 +16,6 @@ from django_rest_replication.models import (
     NodeConnection,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -311,10 +310,8 @@ class TestSnapshotView:
 
         node = make_node()
         org = Organization.objects.create(name="Org")
-        products = [
+        for i in range(5):
             Product.objects.create(name=f"P{i}", price="1.00", organization=org)
-            for i in range(5)
-        ]
         client = authed_client(node)
 
         # First page: limit=2

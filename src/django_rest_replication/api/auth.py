@@ -26,14 +26,14 @@ class NodeTokenAuthentication(BaseAuthentication):
         if not auth_header.startswith(f"{self.keyword} "):
             return None
 
-        token = auth_header[len(self.keyword) + 1:].strip()
+        token = auth_header[len(self.keyword) + 1 :].strip()
         if not token:
             return None
 
         try:
             node = NodeConnection.objects.get(auth_token=token, is_active=True)
-        except NodeConnection.DoesNotExist:
-            raise AuthenticationFailed("Invalid or inactive node token.")
+        except NodeConnection.DoesNotExist as exc:
+            raise AuthenticationFailed("Invalid or inactive node token.") from exc
 
         return node, None
 

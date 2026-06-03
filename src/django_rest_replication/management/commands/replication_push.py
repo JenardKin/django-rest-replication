@@ -17,14 +17,15 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args: object, **options: object) -> None:
-        from django_rest_replication.routing.pusher import run_push
         from django_rest_replication.models.node_connection import NodeConnection
+        from django_rest_replication.routing.pusher import run_push
 
         node_arg = options.get("node")
         node = None
         if node_arg:
             try:
                 import uuid as _uuid
+
                 node = NodeConnection.objects.get(node_id=_uuid.UUID(str(node_arg)))
             except (NodeConnection.DoesNotExist, ValueError):
                 try:

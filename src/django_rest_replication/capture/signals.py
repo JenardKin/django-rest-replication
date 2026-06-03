@@ -62,9 +62,13 @@ def _serialize_old_payload(
         instance.__replication_old_payload__ = None  # type: ignore[attr-defined]
         return
     try:
-        db_instance = sender.objects.get(pk=instance.pk)
+        from django.core.exceptions import ObjectDoesNotExist
+        from django.db.models import Manager
+
+        mgr: Manager[models.Model] = sender._default_manager
+        db_instance = mgr.get(pk=instance.pk)
         instance.__replication_old_payload__ = serialize_instance(db_instance)  # type: ignore[attr-defined]
-    except sender.DoesNotExist:
+    except ObjectDoesNotExist:
         instance.__replication_old_payload__ = None  # type: ignore[attr-defined]
 
 
@@ -86,9 +90,7 @@ def _handle_post_save(
 
     event_type = EventType.CREATE if created else EventType.UPDATE
     payload = serialize_instance(instance)
-    old_payload: dict[str, Any] | None = getattr(
-        instance, "__replication_old_payload__", None
-    )
+    old_payload: dict[str, Any] | None = getattr(instance, "__replication_old_payload__", None)
     node_id = uuid.UUID(str(app_settings.NODE_ID))
     model_label = f"{instance._meta.app_label}.{instance._meta.object_name}"
     object_id = str(instance.pk)
@@ -159,6 +161,4 @@ def connect_signals() -> None:
     """Wire up Django signals for all ReplicatedModel subclasses."""
     pre_save.connect(_serialize_old_payload, sender=None, dispatch_uid="replication_pre_save")
     post_save.connect(_handle_post_save, sender=None, dispatch_uid="replication_post_save")
-    post_delete.connect(
-        _handle_post_delete, sender=None, dispatch_uid="replication_post_delete"
-    )
+    post_delete.connect(_handle_post_delete, sender=None, dispatch_uid="replication_post_delete")

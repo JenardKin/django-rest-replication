@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('django_rest_replication', '0001_initial'),
+        ("django_rest_replication", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='synccursor',
-            name='snapshot_completed_at',
-            field=models.DateTimeField(blank=True, help_text='When the initial snapshot phase completed. Null = not yet bootstrapped.', null=True),
+            model_name="synccursor",
+            name="snapshot_completed_at",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="When the initial snapshot phase completed. Null = not yet bootstrapped.",
+                null=True,
+            ),
         ),
     ]

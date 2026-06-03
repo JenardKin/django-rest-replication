@@ -16,12 +16,11 @@ def get_or_create_cursor(node: NodeConnection, tenant_id: str = "") -> SyncCurso
 
 def advance_cursor(cursor: SyncCursor, event_id: uuid.UUID) -> None:
     """Advance the cursor to point at the given event (select_for_update guard)."""
-    from django_rest_replication.models.change_event import ChangeEvent
-
     SyncCursor.objects.select_for_update().filter(pk=cursor.pk).update(
-        last_event_id=event_id,
+        last_event_id=str(event_id),
     )
-    cursor.last_event_id = event_id  # type: ignore[assignment]
+    # Refresh the in-memory object to reflect DB state
+    cursor.refresh_from_db()
 
 
 def mark_snapshot_complete(cursor: SyncCursor, watermark: uuid.UUID | None) -> None:
@@ -29,16 +28,13 @@ def mark_snapshot_complete(cursor: SyncCursor, watermark: uuid.UUID | None) -> N
     from django.utils import timezone
 
     now = timezone.now()
-    SyncCursor.objects.filter(pk=cursor.pk).update(
-        snapshot_completed_at=now,
-    )
-    cursor.snapshot_completed_at = now  # type: ignore[attr-defined]
-
+    update_kwargs: dict[str, object] = {"snapshot_completed_at": now}
     if watermark is not None:
-        SyncCursor.objects.filter(pk=cursor.pk).update(last_event_id=watermark)
-        cursor.last_event_id = watermark  # type: ignore[assignment]
+        update_kwargs["last_event_id"] = str(watermark)
+    SyncCursor.objects.filter(pk=cursor.pk).update(**update_kwargs)
+    cursor.refresh_from_db()
 
 
 def needs_snapshot(cursor: SyncCursor) -> bool:
     """Return True if the cursor hasn't completed a snapshot yet."""
-    return not bool(getattr(cursor, "snapshot_completed_at", None))
+    return cursor.snapshot_completed_at is None

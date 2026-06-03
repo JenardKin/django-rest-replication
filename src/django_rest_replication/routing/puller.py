@@ -12,7 +12,6 @@ from django_rest_replication.conf import app_settings
 from django_rest_replication.models.node_connection import Direction, NodeConnection
 from django_rest_replication.models.sync_cursor import SyncCursor
 from django_rest_replication.routing.cursor import (
-    advance_cursor,
     get_or_create_cursor,
     mark_snapshot_complete,
     needs_snapshot,
@@ -25,9 +24,7 @@ def _auth_headers(node: NodeConnection) -> dict[str, str]:
     return {"Authorization": f"Token {node.auth_token}"}
 
 
-def bootstrap_node(
-    node: NodeConnection, cursor: SyncCursor, client: httpx.Client
-) -> None:
+def bootstrap_node(node: NodeConnection, cursor: SyncCursor, client: httpx.Client) -> None:
     """
     Phase A: fetch the snapshot manifest, paginate through all rows, apply
     them as upserts, then mark the cursor as bootstrapped.
@@ -90,13 +87,13 @@ def bootstrap_node(
     logger.info("Snapshot bootstrap complete for node %s", node.name)
 
 
-def pull_incremental(
-    node: NodeConnection, cursor: SyncCursor, client: httpx.Client
-) -> None:
+def pull_incremental(node: NodeConnection, cursor: SyncCursor, client: httpx.Client) -> None:
     """Phase B: pull ChangeEvents since cursor, apply, advance."""
     from django_rest_replication.application.applier import apply_event
 
-    after = cursor.last_event_id  # may be None
+    # last_event is the FK field; get last_event_id via getattr for mypy compat
+    _raw_id = getattr(cursor, "last_event_id", None)
+    after: uuid.UUID | None = uuid.UUID(str(_raw_id)) if _raw_id is not None else None
 
     while True:
         params: dict[str, Any] = {"limit": app_settings.BATCH_SIZE}

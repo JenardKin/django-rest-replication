@@ -12,7 +12,6 @@ from django_rest_replication.backend import (
     ReplicationBackend,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -77,7 +76,6 @@ class TestReplicationBackend:
         assert backend.on_before_apply(event) is True
 
     def test_resolve_conflict_returns_use_remote(self) -> None:
-        from django.db import models as django_models
 
         backend = ReplicationBackend()
         # local can be any Model instance; use a plain Model stand-in

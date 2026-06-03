@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from django.db import models
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from django_rest_replication.models import ChangeEvent
 
 
-class ConflictStrategy(str, Enum):
+class ConflictStrategy(StrEnum):
     LAST_WRITE_WINS = "LAST_WRITE_WINS"
     SKIP_IF_NEWER = "SKIP_IF_NEWER"
     RAISE = "RAISE"

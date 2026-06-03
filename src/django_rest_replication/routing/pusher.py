@@ -46,12 +46,10 @@ def run_push(node: NodeConnection | None = None) -> None:
             event = delivery.event
 
             # Increment attempt count
-            EventDelivery.objects.filter(pk=delivery.pk).update(
-                attempts=delivery.attempts + 1
-            )
+            EventDelivery.objects.filter(pk=delivery.pk).update(attempts=delivery.attempts + 1)
 
             serializer = ChangeEventSerializer(event)
-            payload: list[dict[str, Any]] = [serializer.data]  # type: ignore[list-item]
+            payload: list[Any] = [serializer.data]
 
             try:
                 resp = client.post(

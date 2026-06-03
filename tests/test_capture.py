@@ -6,7 +6,10 @@ import uuid
 
 import pytest
 
-from django_rest_replication.capture.signals import get_loop_prevention_flag, set_loop_prevention_flag
+from django_rest_replication.capture.signals import (
+    get_loop_prevention_flag,
+    set_loop_prevention_flag,
+)
 from django_rest_replication.models import ChangeEvent, EventType
 
 
@@ -24,7 +27,7 @@ def make_org() -> object:
 class TestSerializeInstance:
     def test_basic_fields_serialized(self) -> None:
         from django_rest_replication.capture.serializer import serialize_instance
-        from tests.testapp.models import Organization, Product
+        from tests.testapp.models import Organization
 
         org = Organization(name="X")
         # Don't save — just serialize
@@ -131,7 +134,6 @@ def test_delete_product_generates_delete_event() -> None:
 
 @pytest.mark.django_db(transaction=True)
 def test_should_replicate_false_suppresses_event() -> None:
-    from django_rest_replication.models.mixins import ReplicatedModel
     from tests.testapp.models import Organization, Product
 
     # Monkey-patch should_replicate on the instance

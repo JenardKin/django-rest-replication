@@ -53,7 +53,10 @@ class EventView(APIView):
         after = _parse_uuid(after_str) if after_str else None
 
         try:
-            limit = min(int(request.query_params.get("limit", app_settings.BATCH_SIZE)), app_settings.BATCH_SIZE)
+            limit = min(
+                int(request.query_params.get("limit", app_settings.BATCH_SIZE)),
+                app_settings.BATCH_SIZE,
+            )
         except (ValueError, TypeError):
             limit = app_settings.BATCH_SIZE
 
@@ -108,7 +111,7 @@ class AckView(APIView):
         data = request.data
         if not isinstance(data, dict):
             return Response(
-                {"detail": "Expected {\"event_ids\": [...]}"},
+                {"detail": 'Expected {"event_ids": [...]}'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -140,9 +143,7 @@ class SnapshotManifestView(APIView):
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         models_list = get_replicated_models()
-        labels = [
-            f"{m._meta.app_label}.{m._meta.object_name}" for m in models_list
-        ]
+        labels = [f"{m._meta.app_label}.{m._meta.object_name}" for m in models_list]
         watermark = get_current_watermark()
         return Response(
             {

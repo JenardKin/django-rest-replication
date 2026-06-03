@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
@@ -23,23 +22,21 @@ def get_replicated_models() -> list[type[ReplicatedModel]]:
     Raises ``ImproperlyConfigured`` if a dependency cycle is detected.
     """
     replicated: list[type[ReplicatedModel]] = [
-        m  # type: ignore[misc]
-        for m in apps.get_models()
-        if issubclass(m, ReplicatedModel) and not m._meta.abstract
+        m for m in apps.get_models() if issubclass(m, ReplicatedModel) and not m._meta.abstract
     ]
 
     # Build dependency graph: child → {parents} (only replicated parents)
-    replicated_set = set(replicated)
-    deps: dict[type[ReplicatedModel], set[type[ReplicatedModel]]] = {
-        m: set() for m in replicated
-    }
+    replicated_set: set[type[ReplicatedModel]] = set(replicated)
+    deps: dict[type[ReplicatedModel], set[type[ReplicatedModel]]] = {m: set() for m in replicated}
     for model in replicated:
         for field in model._meta.get_fields():
             if not isinstance(field, (models.ForeignKey, models.OneToOneField)):
                 continue
-            related: type[models.Model] = field.related_model  # type: ignore[assignment]
+            related: type[models.Model] | None = field.related_model
+            if related is None:
+                continue
             if related in replicated_set and related is not model:
-                deps[model].add(related)  # type: ignore[index]
+                deps[model].add(related)
 
     # Kahn's algorithm
     result: list[type[ReplicatedModel]] = []
@@ -77,9 +74,9 @@ def get_current_watermark() -> uuid.UUID | None:
 
 def build_snapshot_queryset(
     model: type[models.Model], after: uuid.UUID | None
-) -> QuerySet[Any]:
+) -> QuerySet[models.Model]:
     """Keyset-paginated queryset: objects with id > after, ordered by id."""
-    qs = model.objects.order_by("id")
+    qs: QuerySet[models.Model] = model._default_manager.order_by("id")
     if after is not None:
         qs = qs.filter(id__gt=after)
     return qs

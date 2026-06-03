@@ -7,8 +7,7 @@ from typing import Any
 
 import pytest
 
-from django_rest_replication.models import Direction, NodeConnection
-from django_rest_replication.models.sync_cursor import SyncCursor
+from django_rest_replication.models import NodeConnection
 from django_rest_replication.routing.cursor import get_or_create_cursor, needs_snapshot
 
 
@@ -27,8 +26,8 @@ def test_node_with_existing_data_bootstraps_then_streams(
     5. Verify cursor.snapshot_completed_at is set
     6. run_pull again → calls events endpoint, not snapshot
     """
-    from tests.testapp.models import Organization, Product
     from django_rest_replication.routing.puller import run_pull
+    from tests.testapp.models import Organization, Product
 
     org = Organization.objects.create(name="Remote Org")
     remote_product_id = str(uuid.uuid4())

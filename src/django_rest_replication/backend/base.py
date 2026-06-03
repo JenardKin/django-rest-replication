@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from django_rest_replication.models import ChangeEvent, EventDelivery
 
 
-class ConflictResolution(str, Enum):
+class ConflictResolution(StrEnum):
     USE_LOCAL = "USE_LOCAL"
     USE_REMOTE = "USE_REMOTE"
 

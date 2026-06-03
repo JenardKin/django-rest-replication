@@ -14,6 +14,8 @@ from django_rest_replication.api.views import (
 urlpatterns = [
     path("events/", EventView.as_view(), name="replication-events"),
     path("ack/", AckView.as_view(), name="replication-ack"),
-    path("snapshot/manifest/", SnapshotManifestView.as_view(), name="replication-snapshot-manifest"),
+    path(
+        "snapshot/manifest/", SnapshotManifestView.as_view(), name="replication-snapshot-manifest"
+    ),
     path("snapshot/", SnapshotView.as_view(), name="replication-snapshot"),
 ]

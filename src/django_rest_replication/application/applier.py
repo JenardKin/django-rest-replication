@@ -13,7 +13,6 @@ from django_rest_replication.backend.base import ConflictResolution
 from django_rest_replication.capture.signals import set_loop_prevention_flag
 from django_rest_replication.conf import app_settings
 from django_rest_replication.models.change_event import ChangeEvent, EventType
-from django_rest_replication.models.mixins import ReplicatedModel
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +57,10 @@ def apply_event(
     # 3. Check for existing local instance
     local: models.Model | None = None
     try:
-        local = model_cls.objects.get(pk=object_id)
-    except model_cls.DoesNotExist:
+        from django.core.exceptions import ObjectDoesNotExist
+
+        local = model_cls._default_manager.get(pk=object_id)
+    except ObjectDoesNotExist:
         pass
 
     # 4. Conflict detection
@@ -126,10 +127,8 @@ def _apply_payload(
         if attr in payload:
             defaults[attr] = payload[attr]
 
-    model_cls.objects.update_or_create(
-        **{pk_name: object_id},
-        defaults=defaults,
-    )
+    lookup: dict[str, Any] = {pk_name: object_id}
+    model_cls._default_manager.update_or_create(**lookup, defaults=defaults)
 
 
 def apply_snapshot_row(

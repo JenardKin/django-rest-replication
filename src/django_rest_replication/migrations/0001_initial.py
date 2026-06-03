@@ -26,19 +26,47 @@ class Migration(migrations.Migration):
                         serialize=False,
                     ),
                 ),
-                ("name", models.CharField(help_text="Human-readable label for this peer, e.g. 'EU warehouse'.", max_length=255)),
-                ("base_url", models.CharField(help_text="Root URL of the peer, e.g. 'https://peer.example.com'.", max_length=2048)),
-                ("node_id", models.UUIDField(help_text="The NODE_ID declared by the peer in its DJANGO_REPLICATION settings.", unique=True)),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="Human-readable label for this peer, e.g. 'EU warehouse'.",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "base_url",
+                    models.CharField(
+                        help_text="Root URL of the peer, e.g. 'https://peer.example.com'.",
+                        max_length=2048,
+                    ),
+                ),
+                (
+                    "node_id",
+                    models.UUIDField(
+                        help_text="The NODE_ID declared by the peer in its DJANGO_REPLICATION settings.",
+                        unique=True,
+                    ),
+                ),
                 (
                     "direction",
                     models.CharField(
-                        choices=[("PUSH", "Push (send to peer)"), ("PULL", "Pull (receive from peer)"), ("BOTH", "Both (push and pull)")],
+                        choices=[
+                            ("PUSH", "Push (send to peer)"),
+                            ("PULL", "Pull (receive from peer)"),
+                            ("BOTH", "Both (push and pull)"),
+                        ],
                         default="BOTH",
                         max_length=4,
                     ),
                 ),
                 ("is_active", models.BooleanField(db_index=True, default=True)),
-                ("auth_token", models.CharField(help_text="Shared bearer token used to authenticate requests to/from this peer.", max_length=512)),
+                (
+                    "auth_token",
+                    models.CharField(
+                        help_text="Shared bearer token used to authenticate requests to/from this peer.",
+                        max_length=512,
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
@@ -62,7 +90,12 @@ class Migration(migrations.Migration):
                         serialize=False,
                     ),
                 ),
-                ("node_id", models.UUIDField(db_index=True, help_text="NODE_ID of the node that produced this event.")),
+                (
+                    "node_id",
+                    models.UUIDField(
+                        db_index=True, help_text="NODE_ID of the node that produced this event."
+                    ),
+                ),
                 (
                     "event_type",
                     models.CharField(

@@ -38,7 +38,7 @@ class SyncCursor(models.Model):
         max_length=255,
         blank=True,
         default="",
-        help_text='Tenant this cursor tracks. Empty string for single-tenant setups.',
+        help_text="Tenant this cursor tracks. Empty string for single-tenant setups.",
     )
     last_event = models.ForeignKey(
         ChangeEvent,
@@ -61,5 +61,6 @@ class SyncCursor(models.Model):
 
     def __str__(self) -> str:
         tenant = self.tenant_id if self.tenant_id else "—"
-        cursor = str(self.last_event_id) if self.last_event_id else "start"
+        last_event_id = getattr(self, "last_event_id", None)
+        cursor = str(last_event_id) if last_event_id is not None else "start"
         return f"{self.node.name} / tenant={tenant} @ {cursor}"
